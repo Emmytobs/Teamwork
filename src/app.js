@@ -3,7 +3,7 @@ const cors = require('cors');
 require('dotenv').config();
 
 const app = express();
-const userRoutes = require('./routes/user');
+const userRoutes = require('./routes/user.route');
 
 app.use(cors());
 app.use(express.json());
@@ -18,7 +18,7 @@ app.use((req, res, next) => {
   return next(err);
 });
 
-app.use((err, req, res) => {
+app.use((err, req, res, next) => { // eslint-disable-line no-unused-vars
   res.status(err.status || 500);
   return res.json({
     status: 'error',
@@ -27,4 +27,4 @@ app.use((err, req, res) => {
 });
 
 const { PORT } = process.env;
-app.listen(PORT, () => console.log(`Server listening on ${PORT}`));
+app.listen(PORT, () => console.log(`Server listening on ${PORT}`)); // eslint-disable-line no-console
