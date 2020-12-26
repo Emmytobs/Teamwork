@@ -1,9 +1,10 @@
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
+const passwordGenerator = require('generate-password');
 // const httpResponseHandler = require('../response_handler');
 
 function middleware() {
-  const generateToken = ({ user_id, firstname, lastname }) => {
+  const generateToken = ({ user_id, firstname, lastname }) => { // eslint-disable-line camelcase
     const token = jwt.sign({ user_id, firstname, lastname }, process.env.JWT_SECRET_KEY, { expiresIn: '7d' });
     return token;
   };
@@ -30,10 +31,20 @@ function middleware() {
     next();
   };
 
+  const generateRandomPassword = () => {
+    const randomPassword = passwordGenerator.generate({
+      length: 10,
+      numbers: true,
+      symbols: true,
+    });
+    return randomPassword;
+  };
+
   return {
     generateToken,
     authenticateUser,
     hashPassword,
+    generateRandomPassword,
   };
 }
 

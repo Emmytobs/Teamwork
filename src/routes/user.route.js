@@ -8,7 +8,9 @@ const middleware = require('../middleware/auth');
 // const client = require('../../config/db');
 
 /* eslint-disable consistent-return */
-userRouter.use(middleware.hashPassword);
+userRouter.use('/auth/create-user', middleware.hashPassword);
 userRouter.post('/auth/create-user', userController.registerUser);
+
+userRouter.post('/auth/create-employee-user', userController.createEmployeeUser);
 
 module.exports = userRouter;
