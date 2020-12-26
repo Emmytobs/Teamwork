@@ -82,6 +82,7 @@ function userController() {
       const response = {
         status: 'success',
         data: {
+          message: 'User account successfully created',
           user: {
             ...result.rows[0],
           },
