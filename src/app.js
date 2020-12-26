@@ -4,12 +4,14 @@ require('dotenv').config();
 
 const app = express();
 const userRoutes = require('./routes/user.route');
+const postRoutes = require('./routes/post.route');
 
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
 app.use(userRoutes);
+app.use(postRoutes);
 
 app.use((req, res, next) => {
   const err = new Error('Route not found');
