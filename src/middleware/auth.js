@@ -8,22 +8,34 @@ function middleware() {
     const token = jwt.sign({ user_id, firstname, lastname }, process.env.JWT_SECRET_KEY, { expiresIn: '7d' });
     return token;
   };
-  const authenticateUser = (req, res, next) => { // eslint-disable-line no-unused-vars
-    const { token } = req;
-    const isValid = jwt.verify(token, process.env.JWT_SECRET_KEY);
-    console.log(isValid);
-    // if (!isValid) {
-    //   const error = {
-    //     status: 'Error',
-    //     message: 'Please sign in to be authenticated',
-    //   };
-    //   return httpResponseHandler.error(res, 403, error);
-    // }
 
-    // We need to attach the user_id and firstname to the request object;
-    // req.user = isValid.
-    // res.json(isValid)
+  const authenticateUser = async (req, res, next) => { // eslint-disable-line no-unused-vars
+    try {
+      const token = req.header('Authorization').split(' ')[1];
+      const payload = jwt.verify(token, process.env.JWT_SECRET_KEY);
+      // JS doesn't get to the following condition because the verify method 
+      // on jwt also throws an error,
+      // so JS skips to the catch block and doesn't ever get to the condition below
+      if (!payload) {
+        const err = new Error('This token is invalid');
+        err.status = 401;
+        throw err;
+      }
+      
+      const user = { 
+        userId: payload.user_id, 
+        firstname: payload.firstname, 
+        lastname: payload.lastname,
+      }; 
+      // We need to attach the user_id and firstname to the request object;
+      req.user = user;
+      next();
+    } catch (error) {
+      next(error)
+    }
+   
   };
+  
   const hashPassword = async (req, res, next) => {
     const hashedPassword = await bcrypt.hash(req.body.password, 10);
     console.log(hashedPassword);
@@ -49,3 +61,7 @@ function middleware() {
 }
 
 module.exports = middleware();
+
+// sharesight
+// wallmine
+// atom
