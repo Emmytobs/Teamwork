@@ -6,10 +6,12 @@ CREATE TABLE Users(
     email VARCHAR NOT NULL,
     password VARCHAR NOT NULL,
     gender VARCHAR(10) NOT NULL,
-    address VARCHAR NOT NULL,
+    address VARCHAR,
     jobrole VARCHAR NOT NULL,
     department_id INT NOT NULL REFERENCES Departments,
-    isadmin BOOLEAN NOT NULL
+    isadmin BOOLEAN DEFAULT false NOT NULL,
+    profile_pic VARCHAR,
+    created_at TIMESTAMP
 );
 
 CREATE TABLE Departments(
