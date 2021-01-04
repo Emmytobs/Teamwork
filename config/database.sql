@@ -32,25 +32,18 @@ CREATE TABLE posts(
             REFERENCES departments(department_id)
 )
 
--- -- Articles Table
--- CREATE TABLE articles(
---     article_id SERIAL NOT NULL PRIMARY KEY,
---     content TEXT NOT NULL,
---     created_by INT NOT NULL REFERENCES users(user_id),
---     created_at TIMESTAMPTZ DEFAULT NOW(),
---     in_department INT NOT NULL,
---     CONSTRAINT articles_departments_fkey
---         FOREIGN KEY (in_department)
---             REFERENCES departments(department_id)
--- );
-
--- -- Gifs Table
--- CREATE TABLE gifs(
---     gif_id SERIAL NOT NULL PRIMARY KEY,
---     git_link VARCHAR NOT NULL,
---     created_by INT NOT NULL REFERENCES users(user_id),
---     in_department INT NOT NULL,
---     CONSTRAINT gifs_departments_fkey
---         FOREIGN KEY (in_department)
---             REFERENCES departments(department_id)
--- );
+-- Comments Table
+CREATE TABLE comments(
+    comment_id SERIAL NOT NULL PRIMARY KEY,
+    content VARCHAR NOT NULL,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    in_department INT NOT NULL,
+    created_by INT NOT NULL,
+    post_id INT NOT NULL REFERENCES posts(post_id);
+    constraint comments_departments_fkey
+        FOREIGN KEY(in_department)
+            REFERENCES departments(department_id),
+    constraint comments_users_fkey
+        FOREIGN KEY(created_by)
+            REFERENCES users(user_id)
+)
