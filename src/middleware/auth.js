@@ -1,11 +1,13 @@
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const passwordGenerator = require('generate-password');
-// const httpResponseHandler = require('../response_handler');
+// const client = require('../../config/db');
 
 function middleware() {
-  const generateToken = ({ user_id, firstname, lastname }) => { // eslint-disable-line camelcase
-    const token = jwt.sign({ user_id, firstname, lastname }, process.env.JWT_SECRET_KEY, { expiresIn: '7d' });
+  const generateToken = ({ user_id, firstname, email, departmentId }) => { // eslint-disable-line
+    const token = jwt.sign({
+      user_id, firstname, email, departmentId,
+    }, process.env.JWT_SECRET_KEY, { expiresIn: '7d' });
     return token;
   };
 
@@ -13,7 +15,7 @@ function middleware() {
     try {
       const token = req.header('Authorization').split(' ')[1];
       const payload = jwt.verify(token, process.env.JWT_SECRET_KEY);
-      // JS doesn't get to the following condition because the verify method 
+      // JS doesn't get to the following condition because the verify method
       // on jwt also throws an error,
       // so JS skips to the catch block and doesn't ever get to the condition below
       if (!payload) {
@@ -21,24 +23,23 @@ function middleware() {
         err.status = 401;
         throw err;
       }
-      
-      const user = { 
-        userId: payload.user_id, 
-        firstname: payload.firstname, 
-        lastname: payload.lastname,
-      }; 
+
+      const user = {
+        userId: payload.user_id,
+        firstname: payload.firstname,
+        email: payload.email,
+        departmentId: payload.departmentId,
+      };
       // We need to attach the user_id and firstname to the request object;
       req.user = user;
       next();
     } catch (error) {
-      next(error)
+      next(error);
     }
-   
   };
-  
+
   const hashPassword = async (req, res, next) => {
     const hashedPassword = await bcrypt.hash(req.body.password, 10);
-    console.log(hashedPassword);
     req.hashedPassword = hashedPassword;
     next();
   };

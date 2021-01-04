@@ -2,10 +2,16 @@
 /* eslint-disable no-console */
 /* eslint-disable consistent-return */
 /* eslint-disable no-unused-vars */
+/* eslint-disable camelcase */
 
 // PostgreSQL database node client
+const bcrypt = require('bcryptjs');
+
 const client = require('../../config/db');
-const { generateToken, generateRandomPassword } = require('../middleware/auth');
+const sendEmail = require('../middleware/sendEmail');
+
+const { generateToken, generateRandomPassword, hashPassword } = require('../middleware/auth');
+
 const httpResponseHandler = require('../response_handler');
 
 function userController() {
@@ -74,15 +80,21 @@ function userController() {
       const result = await client.query(
         'INSERT INTO users (firstname, lastname, email, password, gender, jobrole, department_id, address, profile_pic, created_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING *',
         [firstname, lastname, email, randomPassword, gender, jobrole, department, address, profilePic, 'NOW()'],
-        );
+      );
       const newUser = result.rows[0];
-      const token = generateToken({ user_id: newUser.user_id, firstname: newUser.firstname, lastname: newUser.lastname });
+      const token = generateToken({
+        user_id: newUser.user_id, firstname: newUser.firstname, email: newUser.email, departmentId: newUser.department_id,
+      });
+
+      // Send email to employee user
+      const emailTransportMessage = await sendEmail(randomPassword, newUser.email, newUser.firstname);
 
       delete result.rows[0].password;
       const response = {
         status: 'success',
         data: {
           message: 'User account successfully created',
+          emailTransportMessage,
           user: {
             ...result.rows[0],
           },
@@ -95,9 +107,99 @@ function userController() {
     }
   };
 
+  const loginUser = async (req, res, next) => {
+    try {
+      const result = await client.query('SELECT * FROM users WHERE email=$1', [req.body.email]);
+      if (!result.rows.length) {
+        const error = {
+          status: 'error',
+          message: 'Incorrect email or password',
+        };
+        return httpResponseHandler.error(res, 404, error);
+      }
+      // Check if password is correct
+      const { password: passwordInDb } = result.rows[0];
+      let isEqual;
+      if (passwordInDb.includes('auto')) {
+        isEqual = req.body.password === passwordInDb;
+      } else {
+        isEqual = await bcrypt.compare(req.body.password, passwordInDb);
+      }
+
+      if (!isEqual) {
+        const error = {
+          status: 'error',
+          message: 'Incorrect email or password',
+        };
+        return httpResponseHandler.error(res, 404, error);
+      }
+
+      delete result.rows[0].password;
+      // Generate JWT
+      const {
+        user_id, firstname, email, departmentId,
+      } = result.rows[0];
+      const token = generateToken({
+        user_id, firstname, email, departmentId,
+      });
+      const response = {
+        status: 'success',
+        data: {
+          message: 'Log in successful',
+          user: {
+            ...result.rows[0],
+          },
+          token,
+        },
+      };
+      return httpResponseHandler.success(res, 200, response);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  const updateUserData = async (req, res, next) => {
+    let query = `UPDATE users `; // eslint-disable-line quotes
+    const variables = [];
+
+    const updateList = Object.keys(req.body);
+    const forbiddenUpdate = updateList.find((update) => update === 'user_id' || update === 'isadmin' || update === 'created_at');
+    if (forbiddenUpdate) {
+      const error = {
+        status: 'error',
+        message: 'Invalid update!',
+      };
+      return httpResponseHandler.error(res, 400, error);
+    }
+
+    try {
+      const containsPasswordUpdate = updateList.includes('password');
+      if (containsPasswordUpdate) {
+        req.body.password = await bcrypt.hash(req.body.password, 10);
+      }
+  
+      updateList.forEach((key, index) => {
+        if (index === updateList.length - 1) {
+          query += `SET ${key} = $${index + 1} WHERE user_id = ${req.user.userId} RETURNING *`;
+          variables.push(req.body[key]);
+          return;
+        }
+        query += `SET ${key} = $${index + 1}, `;
+        variables.push(req.body[key]);
+      });
+  
+      const result = await client.query(query, variables);
+      res.json(result.rows);
+    } catch (error) {
+      next(error)
+    }
+  };
+
   return {
     registerUser,
-    createEmployeeUser
+    createEmployeeUser,
+    loginUser,
+    updateUserData,
   };
 }
 
