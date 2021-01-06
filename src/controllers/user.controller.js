@@ -137,7 +137,7 @@ function userController() {
       delete result.rows[0].password;
       // Generate JWT
       const {
-        user_id, firstname, email, departmentId,
+        user_id, firstname, email, department_id: departmentId,
       } = result.rows[0];
       const token = generateToken({
         user_id, firstname, email, departmentId,
