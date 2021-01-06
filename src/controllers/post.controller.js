@@ -52,7 +52,7 @@ function postController() {
         FROM posts 
         JOIN users ON posts.created_by = users.user_id 
         WHERE users.department_id = $1 
-        ORDER BY posts.created_at LIMIT 10 OFFSET 0
+        ORDER BY posts.created_at DESC LIMIT 10 OFFSET 0
         `,
         [req.user.departmentId],
       );
