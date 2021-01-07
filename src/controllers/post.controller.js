@@ -21,14 +21,15 @@ function postController() {
       /* eslint-disable max-len */
       const result = await client.query(
         `
-        SELECT users.firstname, users.lastname, users.profile_pic, posts.created_at, posts.article, posts.gif_link FROM posts \
+        SELECT users.firstname, users.lastname, users.profile_pic, posts.created_at, posts.article, posts.gif_link 
+        FROM posts
         JOIN users
         ON posts.created_by = users.user_id
         WHERE posts.post_id = $1
         `,
         [postResult.rows[0].post_id],
       );
-
+        
       const response = {
         status: 'success',
         data: {
@@ -45,16 +46,17 @@ function postController() {
   };
 
   const fetchPosts = async (req, res, next) => {
+    const { limit = 10, offset = 0 } = req.query;
     try {
       const result = await client.query(
         `
-        SELECT users.firstname, users.lastname, users.profile_pic, posts.created_at, posts.article, posts.gif_link 
+        SELECT users.firstname, users.lastname, users.profile_pic, posts.post_id, posts.created_at, posts.article, posts.gif_link 
         FROM posts 
         JOIN users ON posts.created_by = users.user_id 
         WHERE users.department_id = $1 
-        ORDER BY posts.created_at DESC LIMIT 10 OFFSET 0
+        ORDER BY posts.created_at DESC LIMIT $2 OFFSET $3
         `,
-        [req.user.departmentId],
+        [req.user.departmentId, limit, offset],
       );
 
       if (!result.rows.length) {
