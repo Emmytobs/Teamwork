@@ -137,7 +137,7 @@ function userController() {
       delete result.rows[0].password;
       // Generate JWT
       const {
-        user_id, firstname, email, departmentId,
+        user_id, firstname, email, department_id: departmentId,
       } = result.rows[0];
       const token = generateToken({
         user_id, firstname, email, departmentId,
@@ -177,7 +177,6 @@ function userController() {
       if (containsPasswordUpdate) {
         req.body.password = await bcrypt.hash(req.body.password, 10);
       }
-  
       updateList.forEach((key, index) => {
         if (index === updateList.length - 1) {
           query += `SET ${key} = $${index + 1} WHERE user_id = ${req.user.userId} RETURNING *`;
@@ -187,11 +186,11 @@ function userController() {
         query += `SET ${key} = $${index + 1}, `;
         variables.push(req.body[key]);
       });
-  
+
       const result = await client.query(query, variables);
       res.json(result.rows);
     } catch (error) {
-      next(error)
+      next(error);
     }
   };
 

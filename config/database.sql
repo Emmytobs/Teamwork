@@ -16,8 +16,12 @@ CREATE TABLE Users(
 
 CREATE TABLE Departments(
     department_id SERIAL NOT NULL PRIMARY KEY,
-    name NOT NULL VARCHAR,
+    name VARCHAR NOT NULL,
 );
+
+-- Insert rows in the departments table
+INSERT INTO departments (name)
+VALUES ('Finance'), ('Logistics'), ('Lab'), ('Engineering'), ('Brewing'), ('Packaging'), ('Human Resources');
 
 -- Posts Table
 CREATE TABLE posts(
@@ -39,7 +43,7 @@ CREATE TABLE comments(
     created_at TIMESTAMPTZ DEFAULT NOW(),
     in_department INT NOT NULL,
     created_by INT NOT NULL,
-    post_id INT NOT NULL REFERENCES posts(post_id);
+    post_id INT NOT NULL REFERENCES posts(post_id),
     constraint comments_departments_fkey
         FOREIGN KEY(in_department)
             REFERENCES departments(department_id),

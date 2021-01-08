@@ -1,12 +1,19 @@
 /* eslint-disable no-console */
 const { Client } = require('pg');
 
+// const dbConfig = {
+//   user: process.env.PGUSER,
+//   password: process.env.PGPASSWORD,
+//   database: process.env.PGDATABASE,
+//   port: process.env.PGPORT,
+//   host: process.env.PGHOST,
+// };
+
 const dbConfig = {
-  user: process.env.PGUSER,
-  password: process.env.PGPASSWORD,
-  database: process.env.PGDATABASE,
-  port: process.env.PGPORT,
-  host: process.env.PGHOST,
+  connectionString: process.env.DATABASE_URL,
+  ssl: {
+    rejectUnauthorized: false,
+  },
 };
 
 const client = new Client(dbConfig);
