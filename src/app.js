@@ -7,7 +7,7 @@ const app = express();
 const userRoutes = require('./routes/user.route');
 const postRoutes = require('./routes/post.route');
 const departmentRoutes = require('./routes/department.route');
-// const commentRoutes = require('./routes/comment.route');
+const commentRoutes = require('./routes/comment.route');
 
 app.use(cors());
 app.use(express.json());
@@ -16,7 +16,7 @@ app.use(express.urlencoded({ extended: false }));
 app.use(userRoutes);
 app.use(postRoutes);
 app.use(departmentRoutes);
-// app.use(commentRoutes);
+app.use(commentRoutes);
 
 app.get('/test', (req, res) => {
   res.send('Server returned a response!');

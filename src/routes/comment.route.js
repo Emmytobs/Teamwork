@@ -5,10 +5,10 @@ const { authenticateUser } = require('../middleware/auth');
 
 const commentRouter = Router();
 
-commentRouter.use('/comments', authenticateUser);
+commentRouter.use('/comments/read', authenticateUser);
 commentRouter.post('/comments/read', commentController.fetchComments);
 
 commentRouter.use('/comments', authenticateUser);
-commentRouter.post('/comments', commentController.createComment);
+commentRouter.post('/comments', commentController.createComments);
 
 module.exports = commentRouter;

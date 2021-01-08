@@ -29,7 +29,7 @@ function postController() {
         `,
         [postResult.rows[0].post_id],
       );
-        
+
       const response = {
         status: 'success',
         data: {
@@ -81,9 +81,59 @@ function postController() {
     }
   };
 
+  const updatePost = async (req, res, next) => {
+    try {
+      const { article, postId } = req.body;
+      const result = await client.query(
+        `
+        UPDATE posts SET article = $1 
+        WHERE created_by = 
+        RETURNING *
+        `,
+        [article, postId, req.user.userId],
+      );
+      console.log(result.rows[0]);
+      const response = {
+        status: 'success',
+        data: {
+          message: 'Post updated successfully',
+          post: result.rows[0],
+        },
+      };
+      return httpResponseHandler.success(res, 200, response);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  const deletePost = async (req, res, next) => {
+    try {
+      const { postId } = req.body;
+      await client.query(
+        `
+        DELETE FROM posts
+        WHERE post_id = $1
+        `,
+        [postId],
+      );
+
+      const response = {
+        status: 'success',
+        data: {
+          message: 'Post deleted successfully',
+        },
+      };
+      return httpResponseHandler.success(res, 200, response);
+    } catch (error) {
+      next(error);
+    }
+  };
+
   return {
     createPost,
     fetchPosts,
+    updatePost,
+    deletePost,
   };
 }
 
