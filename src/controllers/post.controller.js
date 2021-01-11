@@ -50,7 +50,7 @@ function postController() {
     try {
       const result = await client.query(
         `
-        SELECT users.firstname, users.lastname, users.profile_pic, posts.post_id, posts.created_at, posts.article, posts.gif_link 
+        SELECT users.firstname, users.lastname, users.profile_pic, posts.post_id, posts.created_at, posts.article, posts.gif_link, posts.created_by
         FROM posts 
         JOIN users ON posts.created_by = users.user_id 
         WHERE users.department_id = $1 
@@ -87,12 +87,21 @@ function postController() {
       const result = await client.query(
         `
         UPDATE posts SET article = $1 
-        WHERE created_by = 
+        WHERE post_id = $2 AND created_by = $3
         RETURNING *
         `,
         [article, postId, req.user.userId],
       );
-      console.log(result.rows[0]);
+      if (!result.rows.length) {
+        const response = {
+          status: 'error',
+          data: {
+            message: 'You can\'t update this post because you didn\'t create it',
+            post: result.rows[0],
+          },
+        };
+        return httpResponseHandler.error(res, 403, response);
+      }
       const response = {
         status: 'success',
         data: {
@@ -109,14 +118,23 @@ function postController() {
   const deletePost = async (req, res, next) => {
     try {
       const { postId } = req.body;
-      await client.query(
+      const result = await client.query(
         `
         DELETE FROM posts
-        WHERE post_id = $1
+        WHERE post_id = $1 AND created_by = $2
+        RETURNING *
         `,
-        [postId],
+        [postId, req.user.userId],
       );
-
+      if (!result.rows.length) {
+        const response = {
+          status: 'error',
+          data: {
+            message: 'You can\'t delete this post because you didn\'t create it',
+          },
+        };
+        return httpResponseHandler.success(res, 403, response);
+      }
       const response = {
         status: 'success',
         data: {
