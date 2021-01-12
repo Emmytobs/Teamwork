@@ -117,7 +117,7 @@ function postController() {
 
   const deletePost = async (req, res, next) => {
     try {
-      const { postId } = req.body;
+      const { postId } = req.query;
       const result = await client.query(
         `
         DELETE FROM posts
