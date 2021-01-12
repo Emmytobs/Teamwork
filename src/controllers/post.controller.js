@@ -21,7 +21,7 @@ function postController() {
       /* eslint-disable max-len */
       const result = await client.query(
         `
-        SELECT users.firstname, users.lastname, users.profile_pic, posts.created_at, posts.article, posts.gif_link 
+        SELECT users.firstname, users.lastname, users.profile_pic, posts.post_id, posts.created_at, posts.article, posts.gif_link, posts.created_by
         FROM posts
         JOIN users
         ON posts.created_by = users.user_id
