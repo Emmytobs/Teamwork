@@ -6,6 +6,7 @@
 
 // PostgreSQL database node client
 const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 
 const client = require('../../config/db');
 const sendEmail = require('../middleware/sendEmail');
@@ -194,11 +195,56 @@ function userController() {
     }
   };
 
+  const verifyUserToken = async (req, res, next) => {
+    try {
+      const token = req.header('Authorization').split(' ')[1];
+      const payload = jwt.verify(token, process.env.JWT_SECRET_KEY);
+      // JS doesn't get to the following condition because the verify method
+      // on jwt also throws an error,
+      // so JS skips to the catch block and doesn't ever get to the condition below
+      if (!payload) {
+        const response = {
+          status: 'error',
+          data: {
+            message: 'This token is invalid',
+          },
+        };
+        return httpResponseHandler.error(res, 401, response);
+      }
+
+      const result = await client.query('SELECT * FROM users WHERE email=$1', [payload.email]);
+
+      if (!result.rows.length) {
+        const response = {
+          status: 'error',
+          data: {
+            message: 'This user has been deleted',
+          },
+        };
+        return httpResponseHandler.error(res, 404, response);
+      }
+
+      const response = {
+        status: 'success',
+        data: {
+          message: 'Token is valid',
+          user: {
+            ...result.rows[0],
+          },
+        },
+      };
+      return httpResponseHandler.success(res, 200, response);
+    } catch (error) {
+      next(error);
+    }
+  };
+
   return {
     registerUser,
     createEmployeeUser,
     loginUser,
     updateUserData,
+    verifyUserToken,
   };
 }
 

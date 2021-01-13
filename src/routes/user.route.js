@@ -18,4 +18,6 @@ userRouter.post('/login', userController.loginUser);
 userRouter.use('/update-user-data', middleware.authenticateUser);
 userRouter.put('/update-user-data', userController.updateUserData);
 
+userRouter.get('/user-token/verify', userController.verifyUserToken);
+
 module.exports = userRouter;

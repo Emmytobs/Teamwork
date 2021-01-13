@@ -29,7 +29,6 @@ function postController() {
         `,
         [postResult.rows[0].post_id],
       );
-
       const response = {
         status: 'success',
         data: {
